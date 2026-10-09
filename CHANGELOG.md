@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1-selfhosted.1] - 2026-10-09
+
+Fork of 1.3.0 (JordanMcV/homebridge-nolongerevil-nest).
+
+### Added
+- **Schedule editor for self-hosted servers** — Load the weekly schedule from `GET /api/schedule` and save it with the `set_schedule` command. A save is refused when the schedule's `object_revision` changed after the editor loaded it, so an edit made on the thermostat is not overwritten.
+
+### Fixed
+- **Device list in the settings UI for self-hosted servers** — Read the `devices` array from the `/api/devices` response and show the device name.
+- **Learning Mode switch state** — On self-hosted servers the switch now follows the device's reported `learning_mode` on every poll instead of guessing from whether a schedule exists.
+- **Learning Mode switch failures** — A failed `set_device_setting` call now surfaces as a HomeKit error instead of being logged at debug level while the switch flipped anyway.
+
 ## [1.3.0] - 2026-08-11
 
 ### Added

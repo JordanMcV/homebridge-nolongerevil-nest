@@ -162,7 +162,7 @@ The plugin includes a visual schedule editor accessible from the **Homebridge UI
 5. Copy a day's schedule to all weekdays
 6. Click **Save Schedule** to push changes to the thermostat
 
-> **Note:** The schedule editor requires the hosted NoLongerEvil API. Self-hosted servers do not currently support schedule management via the API.
+> **Note:** In this fork the schedule editor also works with self-hosted servers. It refuses to save if the schedule changed on the thermostat after the editor loaded it; reload and edit again. On self-hosted servers the Smart Schedule switch only toggles learning mode and shows its real state; it does not clear the schedule.
 
 ## Getting an API Key
 

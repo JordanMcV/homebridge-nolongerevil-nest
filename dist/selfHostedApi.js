@@ -231,6 +231,7 @@ class SelfHostedAPI {
             fanActive,
             fanRunning,
             name,
+            learningMode: typeof device.learning_mode === 'boolean' ? device.learning_mode : undefined,
         };
     }
     async setTemperature(deviceId, temperature, mode) {
@@ -296,16 +297,12 @@ class SelfHostedAPI {
         });
     }
     async setLearningMode(deviceId, enabled) {
-        try {
-            await this.request('POST', '/command', {
-                serial: deviceId,
-                command: 'set_device_setting',
-                value: { learning_mode: enabled },
-            });
-        }
-        catch (error) {
-            this.log.debug('Failed to set learning mode:', error);
-        }
+        // Errors propagate so the HomeKit switch reports the failure instead of flipping anyway.
+        await this.request('POST', '/command', {
+            serial: deviceId,
+            command: 'set_device_setting',
+            value: { learning_mode: enabled },
+        });
     }
     async setFanActive(deviceId, active) {
         await this.request('POST', '/command', {

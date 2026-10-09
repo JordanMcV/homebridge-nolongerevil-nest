@@ -44,6 +44,8 @@ export interface ThermostatState {
   fanActive: boolean;
   fanRunning: boolean;
   name: string;
+  // Only reported by self-hosted servers; undefined for the hosted API.
+  learningMode?: boolean;
 }
 
 export interface ScheduleEntry {

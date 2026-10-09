@@ -21,6 +21,7 @@ export declare class NestThermostatAccessory {
     private startPolling;
     stopPolling(): void;
     refreshState(): Promise<void>;
+    private syncLearningSwitch;
     private updateCharacteristics;
     private mapHvacStateToHomeKit;
     private mapHvacModeToHomeKit;

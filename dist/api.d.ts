@@ -37,6 +37,7 @@ export interface ThermostatState {
     fanActive: boolean;
     fanRunning: boolean;
     name: string;
+    learningMode?: boolean;
 }
 export interface ScheduleEntry {
     temp: number;

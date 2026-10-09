@@ -38,6 +38,7 @@ interface SelfHostedDevice {
   };
   fan_timer_active?: boolean;
   fan_timer_timeout?: number;
+  learning_mode?: boolean | null;
 }
 
 interface DevicesResponse {
@@ -271,6 +272,7 @@ export class SelfHostedAPI implements ThermostatApiClient {
       fanActive,
       fanRunning,
       name,
+      learningMode: typeof device.learning_mode === 'boolean' ? device.learning_mode : undefined,
     };
   }
 
@@ -343,15 +345,12 @@ export class SelfHostedAPI implements ThermostatApiClient {
   }
 
   async setLearningMode(deviceId: string, enabled: boolean): Promise<void> {
-    try {
-      await this.request('POST', '/command', {
-        serial: deviceId,
-        command: 'set_device_setting',
-        value: { learning_mode: enabled },
-      });
-    } catch (error) {
-      this.log.debug('Failed to set learning mode:', error);
-    }
+    // Errors propagate so the HomeKit switch reports the failure instead of flipping anyway.
+    await this.request('POST', '/command', {
+      serial: deviceId,
+      command: 'set_device_setting',
+      value: { learning_mode: enabled },
+    });
   }
 
   async setFanActive(deviceId: string, active: boolean): Promise<void> {

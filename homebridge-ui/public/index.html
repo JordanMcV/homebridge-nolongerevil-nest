@@ -217,6 +217,7 @@
 
   let currentDevices = [];
   let currentSchedule = null;
+  let scheduleRevision; // self-hosted only: object_revision the editor loaded
   let selectedDevice = null;
   let deviceState = null; // raw device state
   let editingDay = null;
@@ -378,8 +379,10 @@
         homebridge.request('/schedule', { deviceId, isSelfHosted }).catch(() => null),
         homebridge.request('/raw-state', { deviceId, isSelfHosted }).catch(() => null),
       ]);
+      scheduleRevision = undefined;
       if (schedResponse) {
         currentSchedule = schedResponse.schedule || (schedResponse.days ? schedResponse : null);
+        scheduleRevision = schedResponse.object_revision;
       }
       deviceState = stateResponse;
       renderSchedule();
@@ -837,12 +840,18 @@
     const btn = document.querySelector('#sched-save-btn');
     if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
     try {
-      await homebridge.request('/schedule/update', {
+      const result = await homebridge.request('/schedule/update', {
         deviceId: selectedDevice.id,
         schedule: currentSchedule,
         isSelfHosted: selectedDevice.isSelfHosted,
+        revision: scheduleRevision,
       });
-      showStatus('Schedule saved!', 'success');
+      if (selectedDevice.isSelfHosted) {
+        scheduleRevision = result.revision;
+        showStatus('Schedule saved. The server sends it to the thermostat on its open connection.', 'success');
+      } else {
+        showStatus('Schedule saved!', 'success');
+      }
       homebridge.toast.success('Schedule saved successfully.');
     } catch (error) {
       showStatus('Failed to save: ' + (error.message || error), 'error');

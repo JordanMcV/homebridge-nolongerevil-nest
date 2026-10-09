@@ -112,12 +112,12 @@ class ScheduleUiServer extends HomebridgePluginUiServer {
     for (const source of sources) {
       try {
         if (source.isSelfHosted) {
-          const devices = await this.apiRequest(source.baseUrl, source.apiKey, 'GET', '/api/devices');
-          for (const d of devices) {
+          const response = await this.apiRequest(source.baseUrl, source.apiKey, 'GET', '/api/devices');
+          for (const d of response.devices || []) {
             allDevices.push({
               id: d.serial,
               serial: d.serial,
-              name: `Nest ${d.serial.slice(-4)}`,
+              name: d.name || `Nest ${d.serial.slice(-4)}`,
               source: source.name,
               isSelfHosted: true,
             });
@@ -157,7 +157,13 @@ class ScheduleUiServer extends HomebridgePluginUiServer {
     }
 
     if (isSelfHosted) {
-      throw new Error('Schedule management is not supported on self-hosted servers');
+      // { serial, schedule, object_revision, object_timestamp }
+      return this.apiRequest(
+        source.baseUrl,
+        source.apiKey,
+        'GET',
+        `/api/schedule?serial=${encodeURIComponent(deviceId)}`,
+      );
     }
 
     const response = await this.apiRequest(
@@ -170,7 +176,7 @@ class ScheduleUiServer extends HomebridgePluginUiServer {
   }
 
   async updateSchedule(payload) {
-    const { deviceId, schedule, isSelfHosted } = payload;
+    const { deviceId, schedule, isSelfHosted, revision } = payload;
     const sources = this.getApiConfig();
     const source = isSelfHosted
       ? sources.find((s) => s.isSelfHosted)
@@ -181,7 +187,7 @@ class ScheduleUiServer extends HomebridgePluginUiServer {
     }
 
     if (isSelfHosted) {
-      throw new Error('Schedule management is not supported on self-hosted servers');
+      return this.updateSelfHostedSchedule(source, deviceId, schedule, revision);
     }
 
     await this.apiRequest(
@@ -193,6 +199,27 @@ class ScheduleUiServer extends HomebridgePluginUiServer {
     );
 
     return { success: true };
+  }
+
+  async updateSelfHostedSchedule(source, deviceId, schedule, revision) {
+    const path = `/api/schedule?serial=${encodeURIComponent(deviceId)}`;
+
+    // set_schedule replaces the whole week. Refuse to save over a schedule that changed after the
+    // editor loaded it (an edit on the thermostat, or learning mode adding an entry).
+    const current = await this.apiRequest(source.baseUrl, source.apiKey, 'GET', path);
+    if (revision !== undefined && current.object_revision !== revision) {
+      throw new Error('The schedule changed on the thermostat since it was loaded. Reload it and make your changes again.');
+    }
+
+    await this.apiRequest(source.baseUrl, source.apiKey, 'POST', '/command', {
+      serial: deviceId,
+      command: 'set_schedule',
+      value: schedule,
+    });
+
+    // The server stores the schedule and pushes it to the thermostat on its open connection.
+    const saved = await this.apiRequest(source.baseUrl, source.apiKey, 'GET', path);
+    return { success: true, revision: saved.object_revision };
   }
 
   async getRawState(payload) {

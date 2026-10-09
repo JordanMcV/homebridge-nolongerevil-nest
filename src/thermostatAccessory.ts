@@ -165,6 +165,12 @@ export class NestThermostatAccessory {
   }
 
   private async initScheduleState(): Promise<void> {
+    // Self-hosted servers report the device's real learning mode; the switch tracks it on every poll.
+    if (this.state.learningMode !== undefined) {
+      this.syncLearningSwitch();
+      return;
+    }
+
     try {
       const schedule = await this.apiClient.getSchedule(this.state.deviceId);
       if (schedule) {
@@ -221,8 +227,18 @@ export class NestThermostatAccessory {
     if (newState) {
       this.state = newState;
       this.updateCharacteristics();
+      this.syncLearningSwitch();
     }
 
+  }
+
+  private syncLearningSwitch(): void {
+    if (!this.scheduleSwitch || this.state.learningMode === undefined) {
+      return;
+    }
+    this.smartScheduleEnabled = this.state.learningMode;
+    this.accessory.context.smartScheduleEnabled = this.smartScheduleEnabled;
+    this.scheduleSwitch.updateCharacteristic(this.platform.Characteristic.On, this.smartScheduleEnabled);
   }
 
   private updateCharacteristics(): void {
