@@ -1,7 +1,8 @@
 {
   "name": "homebridge-nolongerevil-nest",
+  "private": true,
   "displayName": "NoLongerEvil Nest",
-  "version": "1.3.1-selfhosted.1",
+  "version": "1.3.1-selfhosted.6",
   "description": "Homebridge plugin for NoLongerEvil Nest Gen 1 & 2 thermostats - revive your bricked Nest thermostat",
   "main": "dist/index.js",
   "scripts": {

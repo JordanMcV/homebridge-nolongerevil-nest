@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1-selfhosted.6] - 2026-10-19
+
+### Changed
+- **Marked the package private** — The Homebridge UI no longer offers the upstream npm release as an update, which would replace the fork. npm also refuses to publish it. Versions 2 to 5 were unreleased test builds.
+
 ## [1.3.1-selfhosted.1] - 2026-10-09
 
 Fork of 1.3.0 (JordanMcV/homebridge-nolongerevil-nest).
